@@ -1,0 +1,29 @@
+[
+  {"id": 101, "betreff": "Frage zur Ummeldung", "inhalt": "Guten Tag,\nich bin letzte Woche nach Mettmann gezogen. Muss ich für die Ummeldung persönlich vorbeikommen oder geht das auch online?\nViele Grüße\nJana Krüger", "erwartete_kategorie": "Anfrage"},
+  {"id": 102, "betreff": "Führerschein umschreiben", "inhalt": "Hallo, welche Dokumente brauche ich, um meinen ausländischen Führerschein umschreiben zu lassen? Danke im Voraus.", "erwartete_kategorie": "Anfrage"},
+  {"id": 103, "betreff": "Parkausweis", "inhalt": "Sehr geehrte Damen und Herren,\nwo kann ich einen Bewohnerparkausweis beantragen und wie lange dauert die Bearbeitung?\nMit freundlichen Grüßen\nPeter Lang", "erwartete_kategorie": "Anfrage"},
+  {"id": 104, "betreff": "Termin am Donnerstag möglich?", "inhalt": "Hallo, gibt es am Donnerstagnachmittag noch freie Termine für die Zulassungsstelle?", "erwartete_kategorie": "Anfrage"},
+  {"id": 105, "betreff": "Information zum Wohngeld", "inhalt": "Guten Tag, ich möchte wissen, ob ich als Student Anspruch auf Wohngeld habe und wo ich den Antrag finde.", "erwartete_kategorie": "Anfrage"},
+  {"id": 106, "betreff": "Öffnungszeiten Bürgerbüro", "inhalt": "Hallo zusammen, hat das Bürgerbüro auch samstags geöffnet? Beste Grüße, Mehmet", "erwartete_kategorie": "Anfrage"},
+
+  {"id": 201, "betreff": "Sehr enttäuscht", "inhalt": "Guten Tag,\nich habe vor einem Monat meinen Antrag abgegeben und seitdem nichts gehört. Am Telefon wurde ich dreimal weiterverbunden und dann aufgelegt. So geht man nicht mit Bürgern um.\nThomas Becker", "erwartete_kategorie": "Beschwerde"},
+  {"id": 202, "betreff": "Beschwerde über Mitarbeiter", "inhalt": "Der Mitarbeiter am Schalter 3 war heute extrem unhöflich zu mir und hat mich vor allen anderen bloßgestellt. Ich erwarte eine Entschuldigung.", "erwartete_kategorie": "Beschwerde"},
+  {"id": 203, "betreff": "Termin schon wieder verschoben", "inhalt": "Hallo, mein Termin wurde jetzt zum zweiten Mal kurzfristig abgesagt. Ich habe mir extra frei genommen. Das ist inakzeptabel.", "erwartete_kategorie": "Beschwerde"},
+  {"id": 204, "betreff": "Bescheid fehlerhaft", "inhalt": "Sehr geehrte Damen und Herren,\nin meinem Bescheid stehen falsche persönliche Daten, obwohl ich alles korrekt angegeben habe. Das ist bereits der zweite Fehler.\nMit freundlichen Grüßen\nAnna Vogel", "erwartete_kategorie": "Beschwerde"},
+  {"id": 205, "betreff": "Unzumutbare Wartezeit", "inhalt": "Ich stand heute zwei Stunden in der Warteschlange und wurde dann ohne Bearbeitung nach Hause geschickt. Ich bin sehr verärgert.", "erwartete_kategorie": "Beschwerde"},
+  {"id": 206, "betreff": "Keine Reaktion auf meine Mails", "inhalt": "Hallo, ich habe Ihnen bereits vier E-Mails geschrieben und nie eine Antwort bekommen. Bitte kümmern Sie sich endlich um mein Anliegen.", "erwartete_kategorie": "Beschwerde"},
+
+  {"id": 301, "betreff": "Rechnung Nr. 4711", "inhalt": "Guten Tag,\nauf der Rechnung Nr. 4711 werden mir 149,90 Euro berechnet, vereinbart waren aber 99,90 Euro. Bitte korrigieren Sie die Rechnung.\nMit freundlichen Grüßen\nLena Schmidt", "erwartete_kategorie": "Rechnung"},
+  {"id": 302, "betreff": "Mahnung obwohl bezahlt", "inhalt": "Sehr geehrte Damen und Herren,\nich habe eine Mahnung über 59,00 Euro erhalten, obwohl ich den Betrag am 02.10. überwiesen habe. Bitte prüfen Sie den Zahlungseingang.\nJonas Weber", "erwartete_kategorie": "Rechnung"},
+  {"id": 303, "betreff": "Gebührenbescheid bezahlt", "inhalt": "Hallo, hiermit teile ich mit, dass die Gebühr von 35 Euro heute überwiesen wurde. Verwendungszweck: AZ 2026-1183.", "erwartete_kategorie": "Rechnung"},
+  {"id": 304, "betreff": "Ratenzahlung möglich?", "inhalt": "Guten Tag, ich kann den offenen Betrag von 480 Euro nicht auf einmal zahlen. Ist eine Ratenzahlung möglich?", "erwartete_kategorie": "Rechnung"},
+  {"id": 305, "betreff": "Erstattung", "inhalt": "Ich habe die Gebühr versehentlich doppelt überwiesen. Bitte erstatten Sie mir den zu viel gezahlten Betrag auf mein Konto.", "erwartete_kategorie": "Rechnung"},
+  {"id": 306, "betreff": "Neue Rechnung", "inhalt": "Sehr geehrte Damen und Herren, anbei erhalten Sie unsere Rechnung Nr. R-2026-311 über die Wartungsarbeiten. Zahlbar innerhalb von 14 Tagen.", "erwartete_kategorie": "Rechnung"},
+
+  {"id": 401, "betreff": "Dokumente", "inhalt": "Hallo, wie besprochen sende ich Ihnen anbei die Kopien. Viele Grüße", "erwartete_kategorie": "Unklar"},
+  {"id": 402, "betreff": "Danke!", "inhalt": "Vielen Dank für die schnelle Hilfe gestern, alles hat geklappt.", "erwartete_kategorie": "Unklar"},
+  {"id": 403, "betreff": "Neue Adresse", "inhalt": "Guten Tag, bitte beachten Sie, dass sich meine Postanschrift zum 1. November ändert: Gartenweg 12, 40822 Mettmann.", "erwartete_kategorie": "Unklar"},
+  {"id": 404, "betreff": "Fwd: Info", "inhalt": "Zur Kenntnisnahme weitergeleitet.", "erwartete_kategorie": "Unklar"},
+  {"id": 405, "betreff": "Termin bestätigt", "inhalt": "Hallo, ich bestätige hiermit den Termin am Dienstag um 10 Uhr. Bis dann!", "erwartete_kategorie": "Unklar"},
+  {"id": 406, "betreff": "Abwesenheit", "inhalt": "Ich bin bis zum 25.10. nicht im Büro und habe keinen Zugriff auf meine E-Mails.", "erwartete_kategorie": "Unklar"}
+]

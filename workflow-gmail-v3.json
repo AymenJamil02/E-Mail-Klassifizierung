@@ -1,0 +1,274 @@
+{
+  "name": "Gmail E-Mail-Klassifizierung lokal v3 (Entwurf + Abteilung)",
+  "nodes": [
+    {
+      "parameters": {
+        "mailbox": "INBOX",
+        "postProcessAction": "read",
+        "format": "resolved",
+        "options": {}
+      },
+      "name": "Neue Mail (IMAP)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mail in ein einheitliches, sauberes Format bringen\nconst out = [];\nfor (const item of $input.all()) {\n  const m = item.json;\n  const fromText = typeof m.from === 'string' ? m.from : (m.from?.text || '');\n  const fromAddr = (typeof m.from === 'object' && m.from?.value?.[0]?.address)\n    || ((fromText.match(/<([^>]+)>/) || [null, fromText])[1] || '');\n\n  let text = m.text || m.textPlain || '';\n  if (!text.trim()) {                       // reine HTML-Mail -> Text extrahieren\n    const html = m.html || m.textHtml || '';\n    text = html.replace(/<style[\\s\\S]*?<\\/style>/gi, ' ')\n               .replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/p>/gi, '\\n')\n               .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');\n  }\n  // Zitierten Verlauf (alte Mails) abschneiden\n  const cut = text.search(/\\n\\s*(Am .{5,120}schrieb.{0,120}:|On .{5,120}wrote:|-{3,}\\s*Original)/);\n  if (cut > 0) text = text.slice(0, cut);\n\n  const hdr = m.headers || m.metadata || {};\n  out.push({ json: {\n    absender: fromText,\n    absender_email: fromAddr.trim().toLowerCase(),\n    betreff: m.subject || '',\n    inhalt: text.replace(/\\n{3,}/g, '\\n\\n').trim(),\n    datum: m.date ? new Date(m.date).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' }) : '',\n    message_id: m.messageId || hdr['message-id'] || '',\n    auto_submitted: String(hdr['auto-submitted'] || '').toLowerCase(),\n  }});\n}\nreturn out;"
+      },
+      "name": "Mail aufbereiten",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "={{ $env.GMAIL_USER }}",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "noreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c3",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c4",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "donotreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c5",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "mailer-daemon",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c6",
+              "leftValue": "={{ $json.absender_email }}",
+              "rightValue": "postmaster",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c7",
+              "leftValue": "={{ $json.auto_submitted }}",
+              "rightValue": "auto",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "c8",
+              "leftValue": "={{ ($json.betreff + ' ' + $json.inhalt).trim() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Schleifenschutz",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://classifier:8000/classify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ betreff: $json.betreff, inhalt: $json.inhalt, absender: $json.absender, mit_llm_entwurf: true, mit_llm_klassifikation: true, meta: $json }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "name": "Klassifizieren",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://classifier:8000/entwurf",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ an: $json.meta.absender_email, betreff: $json.meta.betreff, text: $json.antwortentwurf, original_absender: $json.meta.absender, original_inhalt: $json.meta.inhalt, original_datum: $json.meta.datum, message_id: $json.meta.message_id }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "Gmail-Entwurf anlegen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ ($env.ABSENDER_NAME || 'Kundenservice') + ' <' + $env.GMAIL_USER + '>' }}",
+        "toEmail": "={{ $('Klassifizieren').item.json.meta.absender_email }}",
+        "subject": "={{ 'Re: ' + ($('Klassifizieren').item.json.meta.betreff || 'Ihre Nachricht') }}",
+        "emailFormat": "text",
+        "text": "={{ $('Klassifizieren').item.json.eingangsbestaetigung }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Eingangsbestätigung an Absender",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.GMAIL_USER }}",
+        "toEmail": "={{ $env.INFO_EMAIL }}",
+        "subject": "={{ ($('Klassifizieren').item.json.menschliche_pruefung ? '[PRÜFEN] ' : '') + '[' + $('Klassifizieren').item.json.abteilung + ' | ' + $('Klassifizieren').item.json.kategorie + '] Entwurf bereit: ' + ($('Klassifizieren').item.json.meta.betreff || '(ohne Betreff)') }}",
+        "emailFormat": "text",
+        "text": "={{ 'Von: ' + $('Klassifizieren').item.json.meta.absender + '\\nKategorie: ' + $('Klassifizieren').item.json.kategorie + ' (Quelle: ' + $('Klassifizieren').item.json.klassifikation_quelle + ')' + '\\nAbteilung: ' + $('Klassifizieren').item.json.abteilung + '\\nModellscore: ' + $('Klassifizieren').item.json.modellscore.toFixed(2) + '\\nBegründung: ' + $('Klassifizieren').item.json.begruendung + '\\n\\nDer Antwortentwurf liegt im Ordner \"Entwürfe\" von ' + $env.GMAIL_USER + '.' + '\\nBitte prüfen, ggf. anpassen und dann selbst senden.' + '\\n\\n===== NACHRICHT DES KUNDEN =====\\n' + $('Klassifizieren').item.json.meta.inhalt + '\\n\\n===== ENTWURF (noch NICHT gesendet) =====\\n' + $('Klassifizieren').item.json.antwortentwurf }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "name": "Info an mich",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        400
+      ]
+    }
+  ],
+  "connections": {
+    "Neue Mail (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Mail aufbereiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mail aufbereiten": {
+      "main": [
+        [
+          {
+            "node": "Schleifenschutz",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schleifenschutz": {
+      "main": [
+        [
+          {
+            "node": "Klassifizieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Klassifizieren": {
+      "main": [
+        [
+          {
+            "node": "Gmail-Entwurf anlegen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail-Entwurf anlegen": {
+      "main": [
+        [
+          {
+            "node": "Eingangsbestätigung an Absender",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Info an mich",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

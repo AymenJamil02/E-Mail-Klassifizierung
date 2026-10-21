@@ -1,0 +1,92 @@
+{
+  "name": "E-Mail-Klassifizierung lokal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "email",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 200],
+      "webhookId": "email-klassifizierung"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://classifier:8000/classify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"betreff\": $json.body.betreff, \"inhalt\": $json.body.inhalt } }}",
+        "options": { "timeout": 300000 }
+      },
+      "name": "Klassifizieren",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "pruefung",
+              "leftValue": "={{ $json.menschliche_pruefung }}",
+              "rightValue": "",
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Prüfung nötig?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 200]
+    },
+    {
+      "parameters": {
+        "fromEmail": "klassifizierung@lokal.test",
+        "toEmail": "sachbearbeiter@lokal.test",
+        "subject": "={{ '[PRÜFUNG ERFORDERLICH] ' + $('Webhook').item.json.body.betreff }}",
+        "emailFormat": "text",
+        "text": "={{ 'Kategorie: ' + $json.kategorie + '\\nModellscore: ' + $json.modellscore.toFixed(2) + '\\nBegründung: ' + $json.begruendung + '\\n\\nURSPRÜNGLICHE NACHRICHT:\\n' + $('Webhook').item.json.body.inhalt + '\\n\\nENTWURF (nicht versendet, bitte prüfen):\\n' + $json.antwortentwurf }}",
+        "options": {}
+      },
+      "name": "Mail: Prüfung",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [680, 100]
+    },
+    {
+      "parameters": {
+        "fromEmail": "klassifizierung@lokal.test",
+        "toEmail": "sachbearbeiter@lokal.test",
+        "subject": "={{ '[' + $json.kategorie + '] Entwurf: ' + $('Webhook').item.json.body.betreff }}",
+        "emailFormat": "text",
+        "text": "={{ 'Kategorie: ' + $json.kategorie + '\\nModellscore: ' + $json.modellscore.toFixed(2) + '\\n\\nURSPRÜNGLICHE NACHRICHT:\\n' + $('Webhook').item.json.body.inhalt + '\\n\\nENTWURF (nicht versendet):\\n' + $json.antwortentwurf }}",
+        "options": {}
+      },
+      "name": "Mail: Entwurf",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": { "main": [[{ "node": "Klassifizieren", "type": "main", "index": 0 }]] },
+    "Klassifizieren": { "main": [[{ "node": "Prüfung nötig?", "type": "main", "index": 0 }]] },
+    "Prüfung nötig?": {
+      "main": [
+        [{ "node": "Mail: Prüfung", "type": "main", "index": 0 }],
+        [{ "node": "Mail: Entwurf", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {}
+}
